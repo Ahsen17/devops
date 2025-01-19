@@ -14,8 +14,9 @@ scriptName=$(echo $0 | awk -F/ '{print $NF}')
 [[ -d ${SERVPLACE}/${scriptName} ]] && demoPath=${SERVPLACE}/${scriptName} || demoPath=${WORKPLACE}/${scriptName}
 
 version=$(cat ${demoPath}/VERSION)
-workDir=${demoPath}/${version}/bin
-workExec=${workDir}/${scriptName}
+# workDir=${demoPath}/${version}/bin
+# workExec=${workDir}/${scriptName}
+workDir=${demoPath}
 
 # 配置文件
 confDir=/etc/${scriptName}
@@ -25,7 +26,8 @@ nacosConfUrl="http://localhost:xxxx/"
 
 # 日志
 logDir=${ROOTPATH}/logs/${scriptName}
-logFile=${logDir}/${scriptName}.log
+# logFile=${logDir}/${scriptName}.log
+logFile=${demoPath}/logs/clash.log
 
 # 数据
 dataDir=/${ROOTPATH}/data/${scriptName}
@@ -55,18 +57,33 @@ init
 function start(){
   echo "exec ${scriptName} start"
   # 各程序启动命令不一致，请根据实际情况配置
+  bash ${workDir}/start.sh
+  
+  export http_proxy=http://127.0.0.1:7890
+  export https_proxy=http://127.0.0.1:7890
+  export no_proxy=127.0.0.1,localhost
+  export HTTP_PROXY=http://127.0.0.1:7890
+  export HTTPS_PROXY=http://127.0.0.1:7890
+  export NO_PROXY=127.0.0.1,localhost
+  echo -e "\033[32m[√] 已开启代理\033[0m"
 }
 
 function stop(){
   echo "exec ${scriptName} stop"
-  ps -ef | grep ${scriptName} | grep -v grep | awk '{print $2}' | xargs kill -9
+  bash ${workDir}/shutdown.sh
+  
+  unset http_proxy
+  unset https_proxy
+  unset no_proxy
+  unset HTTP_PROXY
+  unset HTTPS_PROXY
+  unset NO_PROXY
+  echo -e "\033[31m[×] 已关闭代理\033[0m"
 }
 
 function restart(){
   echo "exec ${scriptName} restart"
-  stop
-  sleep 1
-  start
+  bash ${workDir}/restart.sh
 }
 
 function status(){

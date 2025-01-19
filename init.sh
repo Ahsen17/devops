@@ -13,7 +13,11 @@ if [ -z "$env" ];then
     echo ". ${BASEDIR}/.env" >> ~/.bashrc
 fi
 
-# init development env
+
+export PROXY_TOKEN=$(cat token/proxy.token)
+export PROXY_PATH=${BASEDIR}/proxy
 export DEVSENV=${BASEDIR}/devsenv
+
+. script/init/initProxy.sh
 . script/init/initGo.sh
 . script/init/initPy.sh

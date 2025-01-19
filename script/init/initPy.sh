@@ -12,9 +12,10 @@ if [ -d ${PYVENV} ];then
 fi
 
 echo "python3 version: ${PYVERSION}"
+mkdir -p ${DEVSENV}/python
 echo ${PYVERSION} > ${DEVSENV}/python/VERSION
 
-sudo apt-get install python3-pip python3-dev python3-venv -y
+sudo apt-get install python3.10-pip python3.10-dev python3.10-venv -y
 python3 -m venv ${PYVENV}
 
 . ${PYVENV}/bin/activate
