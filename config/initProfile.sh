@@ -18,12 +18,12 @@ SERVPLACE='${SERVPLACE}'
 GOHOME=${DEVSENV}/golang
 GOVERSION=$(cat ${GOHOME}/VERSION | tail -n 1)
 
-GOBINBASE=${GOHOME}/${GOVERSION}/bin
+GOBIN=${GOHOME}/${GOVERSION}/bin
 GODATABASE=${BASEDIR}/data/golang
 
 if [ -n ${GOVERSION} ] && \
-[[ $PATH != *${GOBINBASE}* ]];then
-    PATH=$PATH:${GOBINBASE}
+[[ $PATH != *${GOBIN}* ]];then
+    PATH=$PATH:${GOBIN}
 fi
 
 export GOCACHE=${GODATABASE}/.cache/go-build
@@ -36,6 +36,16 @@ export GOROOT=${GOHOME}/${GOVERSION}
 PYHOME=${DEVSENV}/python
 PYVERSION=$(cat ${PYHOME}/VERSION)
 PYACTIVATE=${PYHOME}/${PYVERSION}/venv/bin/activate
+
+# node env vars setting
+NODEHOME=${DEVSENV}/node
+NODEVERSION=$(cat ${NODEHOME}/VERSION)
+NODEBIN=${NODEHOME}/${NODEVERSION}/bin
+
+if [ -n ${NODEVERSION} ] && \
+[[ $PATH != *${NODEBIN}* ]];then
+    PATH=$PATH:${NODEBIN}
+fi
 
 # custom alias
 alias cls='\'clear\''

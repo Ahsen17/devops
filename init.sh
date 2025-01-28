@@ -6,12 +6,12 @@ if [ ! -d ${BASEDIR} ];then
     mkdir -p ${BASEDIR}
 fi
 
-export PROXY_TOKEN=$(cat token/proxy.token)
-export PROXY_PATH=${BASEDIR}/proxy
-
 export DEVSENV=${BASEDIR}/devsenv
 export WORKPLACE=${BASEDIR}/workplace
 export SERVPLACE=${BASEDIR}/servplace
+
+export PROXY_TOKEN=$(cat token/proxy.token)
+export PROXY_PATH=${SERVPLACE}/proxy
 
 export DATADIR=${BASEDIR}/data
 

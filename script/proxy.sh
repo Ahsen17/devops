@@ -14,20 +14,20 @@ scriptName=$(echo $0 | awk -F/ '{print $NF}')
 [[ -d ${SERVPLACE}/${scriptName} ]] && demoPath=${SERVPLACE}/${scriptName} || demoPath=${WORKPLACE}/${scriptName}
 
 version=$(cat ${demoPath}/VERSION)
-# workDir=${demoPath}/${version}/bin
-# workExec=${workDir}/${scriptName}
-workDir=${ROOTPATH}/${scriptName}
+workDir=${demoPath}/${version}
+workExec=${workDir}/${scriptName}
 
 # 配置文件
-confDir=/etc/${scriptName}
-confFile=${confDir}/${scriptName}.yml
+# confDir=/etc/${scriptName}
+confDir=${workDir}/conf
+confFile=${confDir}/config.yaml
 withNacos=false
 nacosConfUrl="http://localhost:xxxx/"
 
 # 日志
 logDir=${ROOTPATH}/logs/${scriptName}
 # logFile=${logDir}/${scriptName}.log
-logFile=${demoPath}/logs/clash.log
+logFile=${workDir}/logs/clash.log
 
 # 数据
 dataDir=/${ROOTPATH}/data/${scriptName}
@@ -93,6 +93,13 @@ function status(){
   netstat -tln | grep -E '9090|789.'
 }
 
+function update() {
+  echo "exec ${scriptName} update"
+  # 请根据实际情况配置
+  cd ${workDir}
+  git pull
+}
+
 function config(){
   echo "exec ${scriptName} config"
   cat ${confFile}
@@ -121,6 +128,8 @@ elif [[ $operate == restart ]];then
   restart
 elif [[ $operate == status ]];then
   status
+elif [[ $operate == update ]];then
+  update
 elif [[ $operate == config ]];then
   config
 elif [[ $operate == log ]];then
