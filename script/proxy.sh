@@ -16,7 +16,7 @@ scriptName=$(echo $0 | awk -F/ '{print $NF}')
 version=$(cat ${demoPath}/VERSION)
 # workDir=${demoPath}/${version}/bin
 # workExec=${workDir}/${scriptName}
-workDir=${demoPath}
+workDir=${ROOTPATH}/${scriptName}
 
 # 配置文件
 confDir=/etc/${scriptName}
@@ -88,7 +88,9 @@ function restart(){
 
 function status(){
   echo "exec ${scriptName} status"
-  ps aux | grep ${scriptName} | grep -v grep | grep -v status
+  env | grep -E 'http_proxy|https_proxy'
+  echo ""
+  netstat -tln | grep -E '9090|789.'
 }
 
 function config(){
