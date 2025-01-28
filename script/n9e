@@ -19,6 +19,7 @@ workExec=${workDir}/${scriptName}
 
 # 配置文件
 confDir=/etc/${scriptName}
+# confFile=${confDir}/${scriptName}.yml
 confFile=${confDir}/config.toml
 withNacos=false
 nacosConfUrl="http://localhost:xxxx/"
@@ -90,69 +91,51 @@ function version(){
   echo ${version}
 }
 
-function update() {
-  echo "exec ${scriptName} update"
-  cd ${WORKPLACE}/${scriptName}
-  # custom dev commits update
-  make
-  mv n9e ${workExec}
-}
+function update(){
+    echo "exec ${scriptName} update"
+    echo "stopping ${scriptName}..."
+    stop
+    
+    echo "check latest version..."
+    mkdir -p ${WORKPLACE}/nightingale
+    cd ${WORKPLACE}/nightingale
+    ROOT=$(pwd -P)
+    GIT_COMMIT=$(git --work-tree ${ROOT}  rev-parse 'HEAD^{commit}')
+    _GIT_VERSION=$(git --work-tree ${ROOT} describe --tags --abbrev=14 "${GIT_COMMIT}^{commit}" 2>/dev/null)
+    version=$(echo $_GIT_VERSION | cut -d'-' -f1)
 
-function subscribe() {
-  echo "exec ${scriptName} subscribe"
-  echo "stopping ${scriptName}"
-  stop
+    if [ ! -d ${demoPath}/${version} ];then
+      echo "update server version: ${version}"
+      echo ${version} > ${demoPath}/VERSION
+      mkdir ${demoPath}/${version}
+      mkdir ${demoPath}/${version}/bin
+    fi
 
-  echo "check official latest version"
-  ROOT=$(pwd -P)
-  GIT_COMMIT=$(git --work-tree ${ROOT}  rev-parse 'HEAD^{commit}')
-  _GIT_VERSION=$(git --work-tree ${ROOT} describe --tags --abbrev=14 "${GIT_COMMIT}^{commit}" 2>/dev/null)
-  _version=$(echo $_GIT_VERSION | cut -d'-' -f1)
-  if [[ ${version} = ${_version} ]]; then
-    echo "already subscribed"
-    return 0
-  fi
+    echo "prepare front..."
+    cd ${demoPath}
+    TAG=$(curl -sX GET https://api.github.com/repos/n9e/fe/releases/latest   | awk '/tag_name/{print $4;exit}' FS='[""]')
+    if [ ! -f "n9e-fe-${TAG}.tar.gz" ];then
+      wget "https://github.com/n9e/fe/releases/download/${TAG}/n9e-fe-${TAG}.tar.gz"
+    fi
+    if [ ! -d "${version}/pub" ];then
+      cp n9e-fe-${TAG}.tar.gz ${version}/ && cd ${version}
+      tar -xvf n9e-fe-${TAG}.tar.gz
+      rm -rf n9e-fe-${TAG}.tar.gz
+    fi
 
-  if [ ! -d ${workDir} ];then
-    echo "subscribe server version: ${version}"
-    echo ${version} > ${demoPath}/VERSION
-    mkdir ${workDir}
-    mkdir ${workDir}/bin
-  fi
+    echo "prepare backend..."
+    cd ${WORKPLACEPATH}/nightingale
+    git pull # update official codes
+    make
 
-  subscribeFe
-  subscribeBe
-}
-
-function subscribeFe() {
-  # TODO: subscribe n9e fronted
-  echo "prepare fronted..."
-  cd ${SERVPLACE}
-  TAG=$(curl -sX GET https://api.github.com/repos/n9e/fe/releases/latest   | awk '/tag_name/{print $4;exit}' FS='[""]')
-  if [ ! -f "n9e-fe-${TAG}.tar.gz" ];then
-    wget "https://github.com/n9e/fe/releases/download/${TAG}/n9e-fe-${TAG}.tar.gz"
-  fi
-  if [ ! -d "${version}/pub" ];then
-    cp n9e-fe-${TAG}.tar.gz ${version}/ && cd ${version}
-    tar -xvf n9e-fe-${TAG}.tar.gz
-    rm -rf n9e-fe-${TAG}.tar.gz
-  fi
-}
-
-function subscribeBe() {
-  # TODO: subscribe n9e backend
-  echo "prepare backend..."
-  cd ${WORKPLACEPATH}
-  git pull https://github.com/ccfos/nightingale.git
-  cd ./nightingale; make
-
-  workDir=${demoPath}/${version}/bin
-  workExec=${workDir}/${scriptName}
-  mv ${scriptName} ${workExec}
+    workDir=${demoPath}/${version}/bin
+    workExec=${workDir}/${scriptName}
+    cp ${scriptName} ${workExec}
+    echo "update done."
 }
 
 function helpText(){
-  echo "Usage: ${scriptName} {start|stop|restart|status|config|log|version}"
+  echo "Usage: ${scriptName} {start|stop|restart|status|config|log|version|update}"
 }
 
 operate=$1
@@ -170,6 +153,8 @@ elif [[ $operate == log ]];then
   log
 elif [[ $operate == version ]];then
   version
+elif [[ $operate == update ]];then
+  update
 else
   helpText
 fi
