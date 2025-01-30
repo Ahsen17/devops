@@ -38,6 +38,7 @@ for i in $(pwd)/script/*.sh; do
   fi
 done
 unset i
+chmod +x ${_script}/*
 
 # add custom script path to PATH
 if [ -z $(cat ~/.bashrc | grep ${_script}) ]; then

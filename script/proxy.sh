@@ -65,7 +65,7 @@ function start(){
   export HTTP_PROXY=http://127.0.0.1:7890
   export HTTPS_PROXY=http://127.0.0.1:7890
   export NO_PROXY=127.0.0.1,localhost
-  echo -e "\033[32m[√] 已开启代理\033[0m"
+  echo -e "\033[32m[√] proxy online\033[0m"
 }
 
 function stop(){
@@ -78,12 +78,15 @@ function stop(){
   unset HTTP_PROXY
   unset HTTPS_PROXY
   unset NO_PROXY
-  echo -e "\033[31m[×] 已关闭代理\033[0m"
+  echo -e "\033[31m[×] proxy offline\033[0m"
 }
 
 function restart(){
   echo "exec ${scriptName} restart"
-  bash ${workDir}/restart.sh
+  # bash ${workDir}/restart.sh
+  stop
+  sleep 1
+  start
 }
 
 function status(){
@@ -105,6 +108,17 @@ function config(){
   cat ${confFile}
 }
 
+function settoken() {
+  echo "exec ${scriptName} settoken"
+  read -p "input: " token
+  sed -i 's|export CLASH_URL=.*|export CLASH_URL='\'${token}\''|' ${workDir}/.env
+  
+  echo "" >> ${workDir}/.env
+  echo "# ${token}" >> ${workDir}/.env
+
+  restart
+}
+
 function log(){
   echo "exec ${scriptName} log"
   tail -f ${logFile}
@@ -116,7 +130,7 @@ function version(){
 }
 
 function helpText(){
-  echo "Usage: ${scriptName} {start|stop|restart|status|config|log|version}"
+  echo "Usage: ${scriptName} {start|stop|restart|status|config|log|version|update|settoken}"
 }
 
 operate=$1
@@ -132,6 +146,8 @@ elif [[ $operate == update ]];then
   update
 elif [[ $operate == config ]];then
   config
+elif [[ $operate == settoken ]];then
+  settoken
 elif [[ $operate == log ]];then
   log
 elif [[ $operate == version ]];then
